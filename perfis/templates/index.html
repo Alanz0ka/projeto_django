@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block main %}
+
+<!-- Área para novas postagens -->
+<div class="container bg-white py-3 border rounded">
+    <form method="POST" action="{% url 'postagem' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="text" name="titulo" class="form-control" placeholder="Titulo"><br>
+        <textarea name="texto" class="form-control" rows="3" placeholder="Escreva o que quiser"></textarea><br>
+        <input name="imagem" type="file" class="form-control-file"><br>
+        <button class="btn btn-dark full-w">Postar</button>
+    </form>
+</div>
+
+{% if timeline %}
+{% for post in timeline %}
+<div class="card post-index my-4" style="max-width: 100%; height: auto;">
+    <div class="no-gutters">
+        <div class="card-header" style="{% if post.perfil.imagem_capa %} background: url('/media/{{ post.perfil.imagem_capa }}'); {% else %} background: url('{% static '/media/img/bg01.jpg' %}'); {% endif %} 
+                                                background-repeat: no-repeat;
+                                                background-size: cover; 
+                                                background-position: center;">
+            <img src="{% if post.perfil.imagem_perfil %} /media/{{ post.perfil.imagem_perfil }} {% else %} {% static '/media/img/user.png' %} {% endif %}"
+                width="100" alt="Usuário" class="img-thumbnail">
+            <p class="text-white">{{ post.perfil.nome }}</p>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">{{ post.titulo }}</h5>
+            <p class="card-text">
+                {{ post.text }}
+                {% if post.imagem %}
+                <img src="/media/{{ post.imagem }}" alt="Post imagem" class="img-fluid full-w border rounded mt-2">
+                {% endif %}
+            </p>
+            <p class="card-text"><small class="text-muted">{{ post.data_postagem }}</small>
+                {% if perfil_logado.usuario.is_superuser or post.perfil == perfil_logado %}
+                <a class="btn btn-danger text-white float-right" href="{% url 'delete_postagem' post.id %}">Deletar</a>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+{% if timeline.has_next %}
+{% endif %}
+
+<nav aria-label="Page navigation full-w bg-dark">
+    <ul class="pagination justify-content-center">
+        {% if timeline.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?pagina={{ timeline.previous_page_number }}">Anterior</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true">Anterior</a>
+        </li>
+        {% endif %}
+
+        {% if timeline.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?pagina={{ timeline.next_page_number }}">Próximo</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a tabindex="-1" aria-disabled="true" class="page-link">Próximo</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}
